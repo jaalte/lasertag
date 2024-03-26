@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Printable Tags</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .full-page {
+            width: 6.75in;
+            height: 11in;
+            padding-top: 0.5in;
+            padding-bottom: 0.5in;
+            border: 1px solid #00f;
+        }
+        .full-tag {
+            height: 1in;
+            width: 100%;
+            border: 1px solid #0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .printable-tag-area {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ddd;
+            display: flex;
+            flex-direction: row;
+            align-items: center; /* Added to vertically center content */
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+        }
+        .barcode {
+            transform: rotate(270deg);
+            height: 1in;
+            width: auto;
+        }
+        .logo {
+            width: 1in;
+            height: auto;
+            max-height: 1in;
+        }
+        .text-area {
+            margin-left: 0.2in;
+            padding: 0.3in;
+            padding-left: 0in;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Changed from center to start */
+            font-size: 0.2in;
+        }
+        .scientific-name, .cultivar, .common-name {
+            text-align: left;
+            margin-top: 0.05em;
+        }
+        .scientific-name {
+            font-style: italic;
+            font-weight: 100;
+            font-size: 1.2em;
+            font-family: sans-serif;
+        }
+        .cultivar {
+            font-size: 1em;
+            margin-top: 0.2em;
+            font-family: sans-serif;
+        }
+        .common-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            font-family: 'Comic Neue', cursive; /* Changed to a playful web font similar to Comic Sans */
+        }
+
+        @media print {
+            @page {
+                size: 6.75in 11in;
+                margin: 0;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .full-page, .full-tag, .printable-tag-area {
+                border: none;
+            }
+        }
+
+        @font-face { /* Makes the font available without needing to include google font ref */
+            font-family: 'Comic Neue';
+            src: url('fonts/ComicNeue-Bold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+    </style>
+</head>
+<body>
+    <div class="full-page">
+        <div class="full-tag">
+            <div class="printable-tag-area">
+                <div class="logo-area">
+                    <img src="barcode.png" class="barcode">
+                    <img src="logo.png" class="logo">
+                </div>
+                <div class="text-area">
+                    <span class="scientific-name">Muhlenbergia rigens</span>
+                    <span class="cultivar">'Variegata'</span>
+                    <span class="common-name">Deer Grass</span>
+                </div>
+            </div>
+        </div>
+        <!-- 9 more full-tag divs -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Function to duplicate the full-tag section nine times
+            function duplicateTags() {
+                const originalTag = document.querySelector('.full-tag');
+                const page = originalTag.parentNode;
+                for (let i = 1; i < 10; i++) { // Already have one, so start at 1
+                    const clone = originalTag.cloneNode(true);
+                    page.appendChild(clone);
+                }
+            }
+
+            function duplicatePage() {
+                const originalPage = document.querySelector('.full-page');
+                const body = originalPage.parentNode;
+                const clone = originalPage.cloneNode(true);
+                body.appendChild(clone);
+            }
+
+            // Function to update a specific tag with new values from an object
+            function updateTag(tagId, textObject) {
+                // Ensure tagId is within the valid range
+                if (tagId < 1 || tagId > 10) {
+                    console.error('Invalid tag ID. Please provide a value between 1 and 10.');
+                    return;
+                }
+                // Validate textObject contains all required keys
+                const requiredKeys = ['scientific-name', 'cultivar', 'common-name'];
+                for (const key of requiredKeys) {
+                    if (!(key in textObject)) {
+                        console.error(`Missing key '${key}' in textObject.`);
+                        return;
+                    }
+                }
+
+                // Selecting the specific tag and updating its content
+                const tag = document.querySelectorAll('.full-tag')[tagId - 1];
+                for (const key of requiredKeys) {
+                    const span = tag.querySelector(`.${key}`);
+                    if (span) { // Check if the span exists
+                        span.textContent = textObject[key];
+                    }
+                }
+            }
+
+            // Duplicate the tags initially
+            duplicateTags();
+            duplicatePage();
+
+            // Test example that updates all the tags with test values
+            const testObject = {
+                'scientific-name': 'Muhlenbergia rigens',
+                'cultivar': "Variegata",
+                'common-name': 'Variegated Deer Grass'
+            };
+            for (let i = 1; i <= 10; i++) {
+                updateTag(i, testObject);
+            }
+        });
+    </script>
+
+
+</body>
+</html>
