@@ -13,12 +13,41 @@
         .full-page {
             width: 6.75in;
             height: 11in;
-            padding-top: 0.5in;
-            padding-bottom: 0.5in;
             border: 1px solid #00f;
+            display: flex;
+            flex-direction: column;
+        }
+        .page-header, .page-footer {
+            width: 6.75in; /* Full page width to maintain alignment */
+            height: 0.5in; /* Keeps your set height */
+            display: flex;
+            justify-content: center; /* Centers the inner content area */
+            align-items: center;
+            position: relative; /* Essential for positioning inner content */
+            background-color: #eee; /* Example background color */
+        }
+        .content-area {
+            width: 5.75in; /* Width is 1 inch less than the full-page width */
+            display: flex;
+            justify-content: space-between; /* For separating elements inside */
+            padding: 0.1in; /* Space around text */
+            position: absolute; /* Allows precise positioning */
+            left: 0; /* Aligns the content area to the left side */
+            top: 0; /* Aligns the content area to the top, can adjust if needed */
+        }
+        .page-footer .content-area {
+            justify-content: space-between; /* Adjusts content inside footer */
+        }
+        .page-footer {
+            display: flex;
+            justify-content: space-between; /* Align 'Page n of m' and date on opposite ends */
+        }
+        .tag-container {
+            flex-grow: 1;
+            position: relative;
         }
         .full-tag {
-            height: 1in;
+            height: 1in; /* Adjust based on actual available space */
             width: 100%;
             border: 1px solid #0f0;
             display: flex;
@@ -82,12 +111,13 @@
                 size: 6.75in 11in;
                 margin: 0;
             }
-            body {
+            body, .full-page, .full-tag, .printable-tag-area {
                 margin: 0;
                 padding: 0;
-            }
-            .full-page, .full-tag, .printable-tag-area {
                 border: none;
+            }
+            .page-header .page-footer {
+                background-color: #fff;
             }
         }
 
@@ -100,7 +130,7 @@
     </style>
 </head>
 <body>
-    <div class="full-page">
+    <template id="tag-template">
         <div class="full-tag">
             <div class="printable-tag-area">
                 <div class="logo-area">
@@ -108,73 +138,87 @@
                     <img src="logo.png" class="logo">
                 </div>
                 <div class="text-area">
-                    <span class="scientific-name">Muhlenbergia rigens</span>
-                    <span class="cultivar">'Variegata'</span>
-                    <span class="common-name">Deer Grass</span>
+                    <span class="scientific-name"></span>
+                    <span class="cultivar"></span>
+                    <span class="common-name"></span>
                 </div>
             </div>
         </div>
-        <!-- 9 more full-tag divs -->
-    </div>
+    </template>
+    
+    <template id="full-page-template">
+        <div class="full-page">
+            <header class="page-header">
+                <div class="content-area">DVC Horticulture Tag Sheet</div>
+            </header>
+            <div class="tag-container">
+                <!-- Place for tags -->
+            </div>
+            <footer class="page-footer">
+                <div class="content-area">
+                    <span class="page-number">Page n of m</span>
+                    <span class="current-date">YYYY-MM-DD HH:MM:SS</span>
+                </div>
+            </footer>
+        </div>
+    </template>
 
     <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            // Function to duplicate the full-tag section nine times
-            function duplicateTags() {
-                const originalTag = document.querySelector('.full-tag');
-                const page = originalTag.parentNode;
-                for (let i = 1; i < 10; i++) { // Already have one, so start at 1
-                    const clone = originalTag.cloneNode(true);
-                    page.appendChild(clone);
-                }
+        class PageManager {
+            constructor() {
+                this.pages = [];
+                this.currentPageIndex = -1;
+                this.tagsOnCurrentPage = 0;
             }
 
-            function duplicatePage() {
-                const originalPage = document.querySelector('.full-page');
-                const body = originalPage.parentNode;
-                const clone = originalPage.cloneNode(true);
-                body.appendChild(clone);
-            }
-
-            // Function to update a specific tag with new values from an object
-            function updateTag(tagId, textObject) {
-                // Ensure tagId is within the valid range
-                if (tagId < 1 || tagId > 10) {
-                    console.error('Invalid tag ID. Please provide a value between 1 and 10.');
-                    return;
-                }
-                // Validate textObject contains all required keys
-                const requiredKeys = ['scientific-name', 'cultivar', 'common-name'];
-                for (const key of requiredKeys) {
-                    if (!(key in textObject)) {
-                        console.error(`Missing key '${key}' in textObject.`);
-                        return;
+            addTag(tagData) {
+                for (let i = 0; i < tagData.count; i++) {
+                    if (!this.pages.length || this.tagsOnCurrentPage >= 10) {
+                        this.createNewPage();
                     }
+                    const tag = this.createTag(tagData.text);
+                    this.pages[this.currentPageIndex].querySelector('.tag-container').appendChild(tag);
+                    this.tagsOnCurrentPage++;
                 }
-
-                // Selecting the specific tag and updating its content
-                const tag = document.querySelectorAll('.full-tag')[tagId - 1];
-                for (const key of requiredKeys) {
-                    const span = tag.querySelector(`.${key}`);
-                    if (span) { // Check if the span exists
-                        span.textContent = textObject[key];
-                    }
-                }
+                this.updateFooterData();
             }
 
-            // Duplicate the tags initially
-            duplicateTags();
-            duplicatePage();
-
-            // Test example that updates all the tags with test values
-            const testObject = {
-                'scientific-name': 'Muhlenbergia rigens',
-                'cultivar': "Variegata",
-                'common-name': 'Variegated Deer Grass'
-            };
-            for (let i = 1; i <= 10; i++) {
-                updateTag(i, testObject);
+            createNewPage() {
+                const template = document.getElementById('full-page-template').content;
+                const newPage = document.importNode(template, true).querySelector('.full-page');
+                document.body.appendChild(newPage);
+                this.pages.push(newPage);
+                this.currentPageIndex++;
+                this.tagsOnCurrentPage = 0;
             }
+
+            createTag(textData) {
+                const template = document.getElementById('tag-template').content;
+                const tag = document.importNode(template, true).querySelector('.full-tag');
+                Object.entries(textData).forEach(([key, value]) => {
+                    tag.querySelector(`.${key}`).textContent = value;
+                });
+                return tag;
+            }
+
+            updateFooterData() {
+                const totalPages = this.pages.length;
+                const currentDate = new Date().toISOString().replace('T', ' ').slice(0, 19); // Convert to ISO format
+                this.pages.forEach((page, index) => {
+                    page.querySelector('.page-number').textContent = `Page ${index + 1} of ${totalPages}`;
+                    page.querySelector('.current-date').textContent = currentDate;
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const manager = new PageManager();
+            const tagDatas = [
+                { text: { "scientific-name": "Examplicus robustus", "cultivar": "Variegata", "common-name": "Robust Example" }, count: 4 },
+                { text: { "scientific-name": "Examplicus minimus", "cultivar": "Compact", "common-name": "Small Example" }, count: 4 },
+                { text: { "scientific-name": "Examplicus giganteus", "cultivar": "Gigantea", "common-name": "Giant Example" }, count: 4 }
+            ];
+            tagDatas.forEach(tagData => manager.addTag(tagData));
         });
     </script>
 
