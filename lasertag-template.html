@@ -214,9 +214,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             const manager = new PageManager();
             const tagDatas = [
-                { text: { "scientific-name": "Examplicus robustus", "cultivar": "Variegata", "common-name": "Robust Example" }, count: 4 },
+                { text: { "scientific-name": "Examplicus vulgaris", "cultivar": "Variegata", "common-name": "Variegated Example" }, count: 4 },
                 { text: { "scientific-name": "Examplicus minimus", "cultivar": "Compact", "common-name": "Small Example" }, count: 4 },
-                { text: { "scientific-name": "Examplicus giganteus", "cultivar": "Gigantea", "common-name": "Giant Example" }, count: 4 }
+                { text: { "scientific-name": "Examplicus giganteus", "cultivar": "Gigantea", "common-name": "Giant Example" }, count: 2 },
+                { text: { "scientific-name": "DVC Horticulture", "cultivar": "dvchort.org", "common-name": "321 Golf Club Road, Pleasant Hill CA" }, count: 10 },
             ];
             tagDatas.forEach(tagData => manager.addTag(tagData));
         });
